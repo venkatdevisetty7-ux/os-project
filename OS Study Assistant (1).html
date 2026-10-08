@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OS Study Assistant</title>
+<style>
+:root{--mode:light;--bg:#f2f5fb;--card:rgba(255,255,255,.78);--solid:#ffffff;--ink:#0a1020;--mut:#5a667c;--line:rgba(15,23,42,.09);--acc:#2f6bff;--acc2:#12b5c6;--acc3:#22c55e;--soft:rgba(47,107,255,.09);--user:#2f6bff;--ok:#059669;--bad:#e11d48;--shadow:0 10px 40px -12px rgba(30,60,140,.22);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--mode:dark;--bg:#070b14;--card:rgba(20,29,48,.7);--solid:#111a2c;--ink:#eaf0ff;--mut:#95a2bc;--line:rgba(255,255,255,.09);--soft:rgba(91,141,255,.15);--acc:#5b8dff;--shadow:0 12px 44px -14px rgba(0,0,0,.7)}}
+:root[data-theme="dark"]{--mode:dark;--bg:#070b14;--card:rgba(20,29,48,.7);--solid:#111a2c;--ink:#eaf0ff;--mut:#95a2bc;--line:rgba(255,255,255,.09);--soft:rgba(91,141,255,.15);--acc:#5b8dff;--shadow:0 12px 44px -14px rgba(0,0,0,.7)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);font-size:19px;-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"SF Pro Display",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(55% 45% at 90% -8%,rgba(47,107,255,.26),transparent 62%),radial-gradient(45% 40% at -6% 18%,rgba(18,181,198,.2),transparent 62%),radial-gradient(40% 38% at 72% 105%,rgba(34,197,94,.14),transparent 62%)}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+button{font-family:inherit}
+.hide{display:none!important}
+
+/* layout */
+.app{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;padding:22px}
+.side{position:sticky;top:22px;align-self:start;height:calc(100vh - 44px);max-height:760px;display:flex;flex-direction:column;gap:22px;padding:22px;border-radius:30px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.main{min-width:0;padding-bottom:150px}
+header{display:flex;align-items:center;gap:12px}
+.logo{width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;color:#fff;font-weight:800;font-size:1rem;flex:none;box-shadow:0 10px 24px -6px rgba(47,107,255,.6)}
+h1{font-size:1.1rem;margin:0;line-height:1.15;letter-spacing:-.02em}
+header p{margin:3px 0 0;color:var(--mut);font-size:.72rem;line-height:1.3}
+.tbtn{margin-left:auto;flex:none;width:42px;height:42px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:13px;font-size:1.05rem;cursor:pointer;transition:.2s}
+.tbtn:hover{transform:rotate(25deg)}
+.tabs{display:flex;flex-direction:column;gap:8px}
+.tabs button{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid transparent;background:transparent;color:var(--mut);border-radius:16px;padding:13px 16px;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s}
+.tabs button:hover{background:var(--soft);color:var(--ink)}
+.tabs button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 12px 26px -10px rgba(47,107,255,.7)}
+.sidefoot{margin-top:auto}
+.tip{border-radius:20px;padding:16px;background:var(--soft);border:1px solid var(--line);font-size:.8rem;color:var(--mut)}
+.tip b{display:block;color:var(--ink);font-size:.88rem;margin-bottom:4px}
+
+/* search */
+.search{position:sticky;top:14px;z-index:6;margin-bottom:6px}
+.search input{width:100%;border:1px solid var(--line);background:var(--card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:var(--ink);border-radius:20px;padding:16px 22px;font-size:1rem;font-family:inherit;outline:0;box-shadow:var(--shadow);transition:.2s}
+.search input:focus{border-color:var(--acc);box-shadow:0 0 0 5px var(--soft),var(--shadow)}
+#sres{margin:12px 0 4px}
+.sr{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 18px;margin:10px 0;font-size:.92rem;backdrop-filter:blur(14px)}
+.sr-h{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.sr .pg{display:inline-block;background:var(--soft);color:var(--acc);border-radius:99px;padding:2px 11px;font-size:.75rem;font-weight:700;margin-right:6px}
+.sr .ghost{margin-top:10px;display:block}
+mark{background:rgba(250,204,21,.55);color:inherit;border-radius:5px;padding:0 3px}
+
+/* shared */
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:28px;box-shadow:var(--shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.card h2{margin:0 0 8px;font-size:1.3rem;letter-spacing:-.02em}
+.center{text-align:center}.center .btn{margin-top:16px}
+.mut{color:var(--mut)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;border-radius:16px;padding:14px 28px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 14px 28px -10px rgba(47,107,255,.65);transition:.2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 18px 34px -10px rgba(47,107,255,.75)}
+.ghost{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:13px;padding:9px 16px;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s}
+.ghost:hover{border-color:var(--acc);color:var(--acc)}
+.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}.row .btn{margin-top:0}
+.note{color:var(--bad);font-size:.9rem;margin-top:14px}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#upload,#work,#quizV,#expV,#histV,.msg,.sr,.qa{animation:up .45s ease both}
+
+/* hero + upload */
+.hero{padding:6px 4px 22px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:99px;background:var(--soft);color:var(--acc);font-size:.78rem;font-weight:700;border:1px solid var(--line)}
+.hero h2{font-size:clamp(1.9rem,4.6vw,2.9rem);line-height:1.08;letter-spacing:-.035em;margin:16px 0 12px}
+.grad{background:linear-gradient(120deg,var(--acc),var(--acc2) 60%,var(--acc3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mut);max-width:560px;margin:0;font-size:1.02rem}
+.drop{position:relative;border:2px dashed color-mix(in srgb,var(--acc) 45%,transparent);border-radius:24px;padding:46px 20px;text-align:center;cursor:pointer;transition:.25s;background:linear-gradient(160deg,var(--soft),transparent)}
+.drop:hover,.drop.on{border-color:var(--acc);transform:translateY(-3px);box-shadow:0 22px 44px -18px rgba(47,107,255,.5)}
+.drop .ic{width:76px;height:76px;margin:0 auto;border-radius:24px;display:grid;place-items:center;font-size:2.2rem;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 16px 32px -10px rgba(47,107,255,.6);animation:fl 3.2s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-8px)}}
+.drop h2{margin:18px 0 6px;font-size:1.3rem;letter-spacing:-.02em}
+.drop p{margin:0;color:var(--mut);font-size:.9rem}
+.prog{margin-top:24px;display:none}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2),var(--acc3));border-radius:99px;transition:width .35s}
+.prog span{display:block;margin-top:10px;color:var(--mut);font-size:.9rem}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:18px;counter-reset:s}
+.step{counter-increment:s;position:relative;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px 18px 18px 70px;font-size:.88rem;color:var(--mut);backdrop-filter:blur(14px);transition:.2s}
+.step:hover{transform:translateY(-3px)}
+.step::before{content:counter(s);position:absolute;left:18px;top:18px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.step b{display:block;color:var(--ink);font-size:1rem;margin-bottom:2px}
+.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:14px}
+.feat{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;backdrop-filter:blur(14px);transition:.2s}
+.feat:hover{transform:translateY(-3px);border-color:var(--acc)}
+.feat i{font-style:normal;display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--soft);font-size:1.3rem;margin-bottom:10px}
+.feat b{display:block;font-size:1rem}.feat span{color:var(--mut);font-size:.85rem}
+
+/* document bar + chips */
+.docbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:16px 20px;border-radius:24px;background:var(--card);border:1px solid var(--line);margin:12px 0 4px;box-shadow:var(--shadow);backdrop-filter:blur(16px)}
+.docbar .dot{width:12px;height:12px;border-radius:50%;background:var(--ok);animation:pu 2s infinite}
+@keyframes pu{0%{box-shadow:0 0 0 0 rgba(5,150,105,.5)}100%{box-shadow:0 0 0 12px rgba(5,150,105,0)}}
+.docbar b{font-size:.98rem;word-break:break-word}
+.docbar small{color:var(--mut);font-size:.8rem;display:block}
+.docbar button{margin-left:auto}
+.lbl{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin:20px 4px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:10px 18px;font-size:.9rem;font-weight:500;cursor:pointer;transition:.2s;backdrop-filter:blur(12px)}
+.chip:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-2px)}
+.chip.t{flex:1 1 170px;border-radius:20px;padding:18px;font-size:1rem;font-weight:700;text-align:left;background:linear-gradient(150deg,var(--soft),var(--card))}
+.chip.t:hover{box-shadow:0 16px 30px -16px rgba(47,107,255,.6)}
+
+/* chat */
+#chat{display:flex;flex-direction:column;gap:18px;margin-top:20px}
+.msg{max-width:94%;padding:18px 22px;border-radius:24px;font-size:1rem;overflow-wrap:anywhere;position:relative}
+.msg.u{align-self:flex-end;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-bottom-right-radius:8px;box-shadow:0 14px 30px -12px rgba(47,107,255,.6);font-weight:500}
+.msg.a{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:8px;box-shadow:var(--shadow);padding-left:72px;backdrop-filter:blur(16px)}
+.msg.a::before{content:"🎓";position:absolute;left:18px;top:16px;width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:1.15rem;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.msg h3,.msg h4{margin:16px 0 4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--acc)}
+.msg h3:first-child,.msg h4:first-child{margin-top:0}
+.msg p{margin:6px 0}.msg ul,.msg ol{margin:6px 0;padding-left:1.3em}.msg li{margin:5px 0}
+.msg code{background:var(--soft);padding:2px 8px;border-radius:8px;font-size:.88em}
+.msg blockquote{margin:10px 0;padding:10px 16px;border-left:4px solid var(--acc2);background:var(--soft);border-radius:0 14px 14px 0}
+.src{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:.78rem;color:var(--mut)}
+.src span{display:inline-block;background:var(--soft);color:var(--acc);font-weight:600;border-radius:99px;padding:3px 12px;margin:3px 5px 0 0}
+.dots span{display:inline-block;width:10px;height:10px;margin:0 3px;border-radius:50%;background:var(--acc);animation:b 1s infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1.15)}}
+
+/* ask bar */
+.ask{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 45%);pointer-events:none}
+.ask>div{pointer-events:auto;max-width:900px;margin:0 auto;display:flex;gap:10px;background:var(--solid);border:1px solid var(--line);border-radius:26px;padding:9px;box-shadow:0 18px 50px -12px rgba(20,50,130,.35)}
+.ask input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font-size:1.02rem;padding:12px 16px;font-family:inherit}
+.ask button{border:0;border-radius:18px;padding:0 28px;font-size:1rem;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));cursor:pointer;transition:.2s}
+.ask button:hover:not(:disabled){transform:scale(1.04)}
+.ask button:disabled,.ask input:disabled{opacity:.5;cursor:not-allowed}
+
+/* quiz */
+#quizV,#expV,#histV{margin-top:10px}
+.qhead{display:flex;justify-content:space-between;color:var(--mut);font-size:.82rem;font-weight:600;margin-bottom:10px}
+.qq{margin:22px 0 16px!important;line-height:1.35;font-size:1.35rem!important}
+.opt{display:flex;gap:14px;align-items:center;width:100%;text-align:left;border:2px solid var(--line);background:var(--solid);color:var(--ink);border-radius:18px;padding:15px 18px;margin:11px 0;font-size:1rem;cursor:pointer;transition:.2s}
+.opt:hover:not(:disabled){border-color:var(--acc);transform:translateX(5px)}
+.opt b{flex:none;width:34px;height:34px;border-radius:11px;background:var(--soft);color:var(--acc);display:grid;place-items:center;font-size:.9rem}
+.opt.right{border-color:var(--ok);background:rgba(5,150,105,.13)}.opt.right b{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:rgba(225,29,72,.1)}.opt.wrong b{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.why{background:var(--soft);border-radius:18px;padding:16px 18px;margin:14px 0 4px;font-size:.95rem}
+.score{font-size:4rem;font-weight:800;line-height:1.1;background:linear-gradient(135deg,var(--acc),var(--acc2),var(--acc3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.score small{font-size:1.5rem}
+
+/* expected Q&A + history */
+.qa{background:var(--card);border:1px solid var(--line);border-radius:22px;margin:12px 0;overflow:hidden;backdrop-filter:blur(14px);transition:.2s}
+.qa:hover{border-color:color-mix(in srgb,var(--acc) 50%,transparent)}
+.qa summary{display:flex;gap:14px;align-items:flex-start;padding:18px 20px;cursor:pointer;list-style:none;font-weight:600}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::after{content:"＋";margin-left:auto;color:var(--acc);font-size:1.3rem;line-height:1}
+.qa[open] summary::after{content:"－"}
+.qa .no{flex:none;width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;display:grid;place-items:center;font-size:.92rem}
+.qt small{display:block;color:var(--mut);font-weight:500;font-size:.78rem;margin-top:3px}
+.qa[open] summary{border-bottom:1px solid var(--line)}
+.ans{padding:8px 22px 18px;font-size:1rem}.ans p{margin:8px 0}.ans ul,.ans ol{padding-left:1.3em}
+.hh{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:10px 0 6px}
+.hh h2{margin:0;font-size:1.4rem;letter-spacing:-.02em}.hh h2 small{color:var(--mut);font-size:.8rem;font-weight:500}
+.hh .ghost:first-of-type{margin-left:auto}
+.hb{padding:4px 22px 16px}.hb .ghost{margin-top:8px;color:var(--bad)}
+
+/* responsive */
+@media (min-width:861px){.ask{left:calc(max(0px,(100vw - 1280px)/2) + 350px);right:calc(max(0px,(100vw - 1280px)/2) + 22px)}.ask>div{max-width:none}}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr;gap:14px;padding:12px}
+  .side{position:sticky;top:8px;z-index:20;height:auto;max-height:none;padding:12px 14px;gap:10px;border-radius:24px}
+  .sidefoot,header p{display:none}
+  .tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:6px}
+  .tabs button{flex:none;padding:10px 15px;font-size:.88rem;border-radius:14px}
+  .logo{width:40px;height:40px;border-radius:13px}
+  .search{top:92px}
+  .card{padding:22px}
+  .msg.a{padding-left:20px;padding-top:66px}
+  .msg.a::before{left:20px;top:16px}
+  .msg{max-width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+  <header>
+    <div class="logo">OS</div>
+    <div><h1>OS Study Assistant</h1><p>Upload your notes. Ask anything. Get simple answers.</p></div>
+    <button class="tbtn" id="theme" title="Switch theme">🌓</button>
+  </header>
+  <nav class="tabs" id="tabs">
+    <button data-tab="ask" class="on">💬 Ask</button>
+    <button data-tab="quiz">🧩 Quiz</button>
+    <button data-tab="exp">⭐ Expected Q&amp;A</button>
+    <button data-tab="hist">🕘 History</button>
+  </nav>
+  <div class="sidefoot"><div class="tip"><b>💡 Tip</b>Ask in your own words. I answer from your notes, in simple English, with an example.</div></div>
+  </aside>
+  <main class="main">
+  <div class="search"><input id="sq" placeholder="🔍 Search inside your document…" autocomplete="off"></div>
+  <div id="sres"></div>
+  <section id="quizV" class="hide"></section>
+  <section id="expV" class="hide"></section>
+  <section id="histV" class="hide"></section>
+
+
+  <section id="upload">
+    <div class="hero"><span class="pill">✨ AI + RAG powered</span><h2>Turn your OS notes into a <span class="grad">personal tutor</span></h2><p>Upload your Operating Systems notes or PDF, then ask anything. Get clear answers, quizzes and expected exam questions.</p></div>
+    <div class="card">
+      <div class="drop" id="drop">
+        <div class="ic">📄</div>
+        <h2>Drop your Operating Systems notes here</h2>
+        <p>PDF, TXT or MD file · or click to browse</p>
+        <button class="btn" type="button">Choose a file</button>
+      </div>
+      <input type="file" id="file" accept=".pdf,.txt,.md,application/pdf,text/plain" class="hide">
+      <div class="prog" id="prog"><div class="bar"><i id="bar"></i></div><span id="stat">Starting…</span></div>
+      <div class="note hide" id="err"></div>
+    </div>
+    <div class="steps">
+      <div class="step"><b>Upload</b>Add your OS notes or textbook PDF.</div>
+      <div class="step"><b>I read it</b>The file is split into small parts and indexed.</div>
+      <div class="step"><b>You ask</b>I find the best parts and explain them simply.</div>
+    </div>
+    <div class="feats"><div class="feat"><i>💡</i><b>Simple answers</b><span>Step by step, with real-life examples.</span></div><div class="feat"><i>🧩</i><b>Smart quiz</b><span>MCQs made from your own notes.</span></div><div class="feat"><i>⭐</i><b>Expected Q&amp;A</b><span>Likely exam questions with answers.</span></div><div class="feat"><i>🕘</i><b>History</b><span>Find any past answer again.</span></div></div>
+  </section>
+
+  <section id="work" class="hide">
+    <div class="docbar">
+      <div class="dot"></div>
+      <div><b id="dname"></b><small id="dmeta"></small></div>
+      <button class="ghost" id="replace">Change file</button>
+    </div>
+    <div class="lbl">Study tools</div>
+    <div class="chips">
+      <button class="chip t" data-mode="summary">📝 Summary</button>
+      <button class="chip t" data-mode="mcq">✅ 5 MCQs</button>
+      <button class="chip t" data-mode="viva">🎤 Viva questions</button>
+    </div>
+    <div class="lbl">Topics I found · tap to ask</div>
+    <div class="chips" id="topics"></div>
+    <div id="chat"></div>
+  </section>
+</main></div>
+
+<div class="ask hide" id="askbar"><div>
+  <input id="q" placeholder="Ask a question about your document…" autocomplete="off">
+  <button id="send">Ask</button>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const STOP=new Set("a an the is are was were be been being of in on at to for from by with and or but if then so as it its this that these those what which who whom how why when where do does did can could should would will shall may might i you we they he she me my your our their about into than also not no yes explain tell give me please define list write describe state mean means".split(" "));
+let chunks=[],df={},avgLen=1,history=[],busy=false,docName='';
+
+/* theme */
+$('theme').onclick=()=>{const d=document.documentElement;const dark=getComputedStyle(d).getPropertyValue('--mode').trim()==='dark';d.setAttribute('data-theme',dark?'light':'dark')};
+
+/* helpers */
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const stem=w=>w.length>4?w.replace(/(ing|ed|es|s)$/,''):w;
+const tok=t=>(t.toLowerCase().match(/[a-z0-9]+/g)||[]).filter(w=>w.length>1&&!STOP.has(w)).map(stem);
+function md(t){
+  let h=esc(t).replace(/```[\s\S]*?```/g,m=>'<pre><code>'+m.replace(/```\w*\n?/g,'')+'</code></pre>');
+  const lines=h.split('\n');let out='',list=null;
+  const close=()=>{if(list){out+='</'+list+'>';list=null}};
+  const inl=s=>s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');
+  for(const raw of lines){
+    const l=raw.trim();let m;
+    if(!l){close();continue}
+    if(m=l.match(/^#{1,4}\s+(.*)/)){close();out+='<h3>'+inl(m[1])+'</h3>'}
+    else if(m=l.match(/^[-*•]\s+(.*)/)){if(list!=='ul'){close();out+='<ul>';list='ul'}out+='<li>'+inl(m[1])+'</li>'}
+    else if(m=l.match(/^\d+[.)]\s+(.*)/)){if(list!=='ol'){close();out+='<ol>';list='ol'}out+='<li>'+inl(m[1])+'</li>'}
+    else if(m=l.match(/^&gt;\s?(.*)/)){close();out+='<blockquote>'+inl(m[1])+'</blockquote>'}
+    else{close();out+='<p>'+inl(l)+'</p>'}
+  }
+  close();return out;
+}
+function setProg(p,txt){$('prog').style.display='block';$('bar').style.width=p+'%';$('stat').textContent=txt}
+function showErr(m){const e=$('err');e.textContent=m;e.classList.remove('hide')}
+
+/* file reading */
+async function readPdf(file){
+  if(!window.pdfjsLib)throw new Error('PDF reader could not load. Please try a TXT file or check your internet.');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  const pages=[];
+  for(let i=1;i<=pdf.numPages;i++){
+    const pg=await pdf.getPage(i),c=await pg.getTextContent();
+    pages.push({n:i,text:c.items.map(x=>x.str).join(' ').replace(/\s+/g,' ').trim()});
+    setProg(10+60*i/pdf.numPages,'Reading page '+i+' of '+pdf.numPages+'…');
+  }
+  return pages;
+}
+async function readText(file){
+  const t=await file.text();const parts=t.split(/\f|\n{3,}/);
+  return parts.map((p,i)=>({n:i+1,text:p.replace(/\s+/g,' ').trim()})).filter(p=>p.text);
+}
+
+/* chunk + index (the "RAG" retrieval index) */
+function buildIndex(pages){
+  chunks=[];
+  for(const p of pages){
+    const w=p.text.split(' ');
+    for(let i=0;i<w.length;i+=90){
+      const text=w.slice(i,i+120).join(' ');
+      if(text.length>40)chunks.push({page:p.n,text,t:tok(text)});
+    }
+  }
+  df={};let tot=0;
+  chunks.forEach(c=>{tot+=c.t.length;new Set(c.t).forEach(x=>df[x]=(df[x]||0)+1)});
+  avgLen=tot/Math.max(1,chunks.length);
+}
+function retrieve(q,k){
+  const qt=tok(q);if(!qt.length)return [];
+  const N=chunks.length;
+  const scored=chunks.map((c,i)=>{
+    const tf={};c.t.forEach(x=>tf[x]=(tf[x]||0)+1);let s=0;
+    qt.forEach(x=>{if(!tf[x])return;const idf=Math.log(1+(N-(df[x]||0)+.5)/((df[x]||0)+.5));
+      s+=idf*(tf[x]*2.2)/(tf[x]+1.2*(.25+.75*c.t.length/avgLen))});
+    return {i,s}
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,k);
+  return scored.map(x=>chunks[x.i]);
+}
+function spread(n){
+  if(chunks.length<=n)return chunks.slice();
+  const out=[];for(let i=0;i<n;i++)out.push(chunks[Math.floor(i*chunks.length/n)]);return out;
+}
+function topKeywords(){
+  const f={};chunks.forEach(c=>c.t.forEach(x=>{if(x.length>3&&!/^\d+$/.test(x))f[x]=(f[x]||0)+1}));
+  return Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,7).map(e=>e[0]);
+}
+
+/* upload flow */
+async function handle(file){
+  if(!file)return;$('err').classList.add('hide');docName=file.name;
+  try{
+    setProg(5,'Opening your file…');
+    const isPdf=/\.pdf$/i.test(file.name)||file.type==='application/pdf';
+    const pages=isPdf?await readPdf(file):await readText(file);
+    if(!pages.some(p=>p.text.length>20))throw new Error('I could not find readable text in this file. If it is a scanned PDF, please upload a text-based one.');
+    setProg(80,'Splitting the text into small parts…');await new Promise(r=>setTimeout(r,250));
+    buildIndex(pages);
+    setProg(95,'Building the search index…');await new Promise(r=>setTimeout(r,250));
+    setProg(100,'Done!');
+    ready(pages.length);
+  }catch(e){showErr(e.message||'Something went wrong while reading the file.');$('prog').style.display='none'}
+}
+function ready(np){
+  docLoaded=true;replacing=false;resetGen();show('ask');
+  $('dname').textContent=docName;
+  $('dmeta').textContent=np+' page'+(np>1?'s':'')+' · '+chunks.length+' parts indexed · ready for questions';
+  const kws=topKeywords();
+  $('topics').innerHTML=kws.map(k=>'<button class="chip" data-q="Explain '+esc(k)+' in simple words">'+esc(k)+'</button>').join('');
+  history=[];$('chat').innerHTML='';
+  addMsg('a','<h3>I have read your document ✅</h3><p>I understood it and indexed it. I will wait for your question now. Ask anything from your notes, or use the study tools above.</p>');
+}
+$('drop').onclick=()=>$('file').click();
+$('file').onchange=e=>handle(e.target.files[0]);
+['dragover','dragenter'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.add('on')}));
+['dragleave','drop'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.remove('on')}));
+$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));
+$('replace').onclick=()=>{replacing=true;show('ask');$('prog').style.display='none';$('file').value=''};
+
+/* chat */
+function addMsg(who,html){const d=document.createElement('div');d.className='msg '+who;d.innerHTML=html;$('chat').appendChild(d);d.scrollIntoView({behavior:'smooth',block:'end'});return d}
+const STYLE=`You are a friendly Operating Systems tutor helping a student who is new to the subject.
+Rules:
+- Use ONLY the CONTEXT below (parts of the student's own uploaded document). Do not invent facts.
+- If the context does not contain the answer, say clearly: "This is not covered in your uploaded document." Then add a short heading "Outside your document" with a brief general answer.
+- Write in very simple English with short sentences. Define any technical word the first time you use it.
+- Use this exact layout with markdown headings:
+### Short answer
+(1-2 simple sentences)
+### Explained step by step
+(numbered or bulleted points, each easy to understand)
+### Real-life example
+(one everyday analogy, e.g. a kitchen, a road, a classroom)
+### Remember it
+(a simple memory trick or mnemonic, only if it helps; otherwise one key exam point)
+- Keep it genuine and clear, about 150-260 words. No long paragraphs.`;
+const MODES={
+  summary:{label:'Give me a summary of my document',n:14,ask:`Task: Write a clear summary of the whole document for a student. Use headings "### Big idea", "### Key topics" (bullets, one simple line each) and "### Must-remember points" (5-7 exam-ready bullets). Simple English.`},
+  mcq:{label:'Make 5 MCQs from my document',n:12,ask:`Task: Create 5 multiple-choice questions from the context. For each: the question, options A-D, then "Answer:" and a one-line easy explanation. Number them 1-5. Simple English.`},
+  viva:{label:'Give me viva questions',n:12,ask:`Task: Create 8 likely viva (oral exam) questions from the context. Under each question give a short, simple model answer (1-2 sentences). Number them.`}
+};
+async function ask(question,mode){
+  if(busy||!question.trim())return;
+  let sample=null;
+  try{sample=window.claude&&await claude.use('sample')}catch(e){}
+  if(!sample){addMsg('u',esc(question));addMsg('a','<p>The AI part is not available in this view. Please open this page from your Claude account to get answers.</p>');return}
+  busy=true;$('send').disabled=true;$('q').disabled=true;
+  addMsg('u',esc(mode?MODES[mode].label:question));
+  const ctxChunks=mode?spread(MODES[mode].n):retrieve(question,5);
+  const ctx=ctxChunks.map((c,i)=>'[Part '+(i+1)+' · page '+c.page+'] '+c.text).join('\n\n');
+  const recent=history.slice(-4).map(h=>(h.r==='u'?'Student: ':'Tutor: ')+h.t.slice(0,400)).join('\n');
+  const body=mode?MODES[mode].ask:'Student question: '+question;
+  const prompt=STYLE+'\n\nCONTEXT FROM DOCUMENT:\n'+(ctx||'(no matching parts found)')+'\n\n'+(recent?'Recent chat:\n'+recent+'\n\n':'')+body;
+  const m=addMsg('a','<div class="dots"><span></span><span></span><span></span></div>');
+  try{
+    const r=await sample(prompt,{cache:false,onText:({text})=>{m.innerHTML=md(text);m.scrollIntoView({block:'end'})}});
+    m.innerHTML=md(r.text);
+    const pgs=[...new Set(ctxChunks.map(c=>c.page))].sort((a,b)=>a-b);
+    if(pgs.length)m.insertAdjacentHTML('beforeend','<div class="src">📚 Found in: '+pgs.slice(0,10).map(p=>'<span>page '+p+'</span>').join('')+'</div>');
+    history.push({r:'u',t:question},{r:'a',t:r.text});hAdd({type:mode||'ask',q:mode?MODES[mode].label:question,a:r.text});
+  }catch(e){
+    m.innerHTML='<p>'+(e&&e.code==='rate_limited'?'Too many questions too fast. Please wait a moment and try again.':e&&e.code==='not_granted'?'Permission was not given, so I could not answer. Ask again and allow it.':'Sorry, I could not answer that. Please try again.')+'</p>';
+  }
+  busy=false;$('send').disabled=false;$('q').disabled=false;$('q').focus();
+}
+$('send').onclick=()=>{const v=$('q').value;$('q').value='';ask(v)};
+$('q').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('send').click()}});
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c)return;
+  if(c.dataset.mode)ask('',c.dataset.mode);else if(c.dataset.q)ask(c.dataset.q);
+});
+
+/* ===== tabs, search, history, quiz, expected Q&A ===== */
+let tab='ask',docLoaded=false,replacing=false,quizData=null,expData=null,lastHits=[],st=null;
+const HK='osa_hist_v1';
+function hLoad(){try{return JSON.parse(localStorage.getItem(HK)||'[]')}catch(e){return []}}
+function hSave(a){try{localStorage.setItem(HK,JSON.stringify(a.slice(0,200)))}catch(e){}}
+function hAdd(e){const a=hLoad();a.unshift(Object.assign({id:Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),doc:docName},e));hSave(a)}
+const ICON={ask:'💬',summary:'📝',mcq:'✅',viva:'🎤',quiz:'🧩'};
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function ctxText(n){return spread(n).map((c,i)=>'[Part '+(i+1)+' · page '+c.page+'] '+c.text).join('\n\n')}
+async function genJSON(prompt){let s=null;try{s=window.claude&&await claude.use('sample')}catch(e){}if(!s)throw {code:'na'};const r=await s.json(prompt,{cache:false});return typeof r==='string'?JSON.parse(r):r}
+function resetGen(){quizData=null;expData=null;$('quizV').innerHTML='';$('expV').innerHTML=''}
+function empty(el,msg){el.innerHTML='<div class="card center"><p>'+msg+'</p><button class="btn" data-go="ask">Upload a document</button></div>'}
+function loadingHTML(t){return '<div class="card center"><div class="dots"><span></span><span></span><span></span></div><p>'+t+'</p></div>'}
+function failHTML(e,retry){const m=e&&e.code==='not_granted'?'Permission was not given. Please allow it and try again.':e&&e.code==='rate_limited'?'Please wait a moment and try again.':e&&e.code==='na'?'The AI part is not available in this view. Open this page from your Claude account.':'Sorry, I could not create this. Please try again.';return '<div class="card center"><p>'+m+'</p><button class="btn" data-act="'+retry+'">Try again</button></div>'}
+
+function show(t){
+  tab=t;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  ['upload','work','quizV','expV','histV'].forEach(id=>$(id).classList.add('hide'));
+  $('askbar').classList.add('hide');$('sres').innerHTML='';
+  $('sq').placeholder=t==='hist'?'🔍 Search your history…':'🔍 Search inside your document…';
+  if(t==='ask'){if(docLoaded&&!replacing){$('work').classList.remove('hide');$('askbar').classList.remove('hide')}else $('upload').classList.remove('hide')}
+  else if(t==='quiz'){$('quizV').classList.remove('hide');renderQuizHome()}
+  else if(t==='exp'){$('expV').classList.remove('hide');renderExpHome()}
+  else{$('histV').classList.remove('hide');renderHist()}
+  if(t!=='hist'&&$('sq').value.trim())doSearch();
+}
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.tab)};
+
+/* search */
+function doSearch(){
+  const q=$('sq').value.trim();
+  if(tab==='hist'){renderHist();return}
+  const out=$('sres');
+  if(!q){out.innerHTML='';return}
+  if(!docLoaded){out.innerHTML='<div class="sr">Upload a document first, then I can search inside it.</div>';return}
+  const words=(q.toLowerCase().match(/[a-z0-9]+/g)||[]).filter(w=>w.length>1&&!['amp','lt','gt','quot'].includes(w));
+  lastHits=retrieve(q,6);
+  if(!lastHits.length){out.innerHTML='<div class="sr">No matching passages found. Try a different word.</div>';return}
+  out.innerHTML='<div class="sr-h">Top matches in your document</div>'+lastHits.map((c,i)=>{
+    const low=c.text.toLowerCase();let at=-1;for(const w of words){at=low.indexOf(w);if(at>=0)break}
+    const sn=c.text.slice(Math.max(0,at-90),Math.max(0,at-90)+300);
+    let h=esc(sn);words.forEach(w=>{h=h.replace(new RegExp('('+w+')','gi'),'<mark>$1</mark>')});
+    return '<div class="sr"><span class="pg">page '+c.page+'</span>…'+h+'…<button class="ghost" data-exp="'+i+'">Explain this simply</button></div>';
+  }).join('');
+}
+$('sq').addEventListener('input',()=>{clearTimeout(st);st=setTimeout(doSearch,200)});
+
+/* history */
+function renderHist(){
+  const q=$('sq').value.trim().toLowerCase();let a=hLoad();const total=a.length,el=$('histV');
+  if(!total){el.innerHTML='<div class="card center"><p>No history yet. Your questions, study tools and quiz scores will appear here.</p></div>';return}
+  if(q)a=a.filter(x=>((x.q||'')+' '+(x.a||'')+' '+(x.doc||'')).toLowerCase().includes(q));
+  el.innerHTML='<div class="hh"><h2>🕘 History <small>'+a.length+' of '+total+'</small></h2><button class="ghost" data-act="clr">Clear all</button></div>'+
+  (a.length?a.map(x=>'<details class="qa"><summary><span class="no">'+(ICON[x.type]||'💬')+'</span><span class="qt">'+esc(x.q||'')+'<small>'+new Date(x.ts).toLocaleString([],{dateStyle:'medium',timeStyle:'short'})+(x.doc?' · '+esc(x.doc):'')+'</small></span></summary><div class="hb ans">'+md(x.a||'')+'<button class="ghost" data-del="'+x.id+'">Delete</button></div></details>').join(''):'<div class="card center"><p>Nothing matches your search.</p></div>');
+}
+
+/* quiz */
+function renderQuizHome(){
+  if(!docLoaded){empty($('quizV'),'Upload your notes first. Then I will make a quiz from them.');return}
+  if(quizData){renderQuiz();return}
+  if($('quizV').dataset.busy)return;
+  $('quizV').innerHTML='<div class="card center"><h2>🧩 Quiz from your document</h2><p class="mut">I will create multiple-choice questions that are likely in your exam. You get instant feedback and a simple explanation for each one.</p><button class="btn" data-act="mkquiz">Create my quiz</button></div>';
+}
+async function makeQuiz(){
+  const el=$('quizV');el.dataset.busy='1';el.innerHTML=loadingHTML('Reading your document and writing questions…');
+  try{
+    const d=await genJSON('Using ONLY the context below (from the student\'s Operating Systems document), create 8 multiple-choice questions a student would likely face in an exam. Return JSON only: {"questions":[{"q":"question","options":["text","text","text","text"],"answer":0,"explain":"one simple sentence why this is right"}]}. Exactly 4 options without letter prefixes; "answer" is the index 0-3 of the right option. Simple English.\n\nCONTEXT:\n'+ctxText(16));
+    const qs=(d.questions||[]).filter(x=>x&&x.q&&Array.isArray(x.options)&&x.options.length>=2).slice(0,10).map(x=>{const right=x.options[x.answer];const o=shuffle(x.options.slice(0,4));return {q:x.q,opts:o,ans:o.indexOf(right),ex:x.explain||''}}).filter(x=>x.ans>=0);
+    if(!qs.length)throw {};
+    quizData={qs,i:0,score:0,picked:null,saved:false};delete el.dataset.busy;renderQuiz();
+  }catch(e){delete el.dataset.busy;el.innerHTML=failHTML(e,'mkquiz')}
+}
+function renderQuiz(){
+  const Q=quizData,el=$('quizV');
+  if(Q.i>=Q.qs.length){
+    const n=Q.qs.length,pct=Math.round(100*Q.score/n);
+    if(!Q.saved){Q.saved=true;hAdd({type:'quiz',q:'Quiz · '+n+' questions',a:'Score: '+Q.score+' / '+n+' ('+pct+'%)'})}
+    const msg=pct>=80?'Excellent work! 🎉':pct>=50?'Good job. A little more revision and you will be perfect.':'Keep going. Read the explanations and try again.';
+    el.innerHTML='<div class="card center"><div class="score">'+Q.score+'<small> / '+n+'</small></div><h2>'+msg+'</h2><div class="row"><button class="btn" data-act="retry">Try again</button><button class="ghost" data-act="mkquiz">New quiz</button></div></div>';return;
+  }
+  const q=Q.qs[Q.i],done=Q.picked!==null;
+  el.innerHTML='<div class="card"><div class="qhead"><span>Question '+(Q.i+1)+' of '+Q.qs.length+'</span><span>Score: '+Q.score+'</span></div><div class="bar"><i style="width:'+(100*Q.i/Q.qs.length)+'%"></i></div><h2 class="qq">'+esc(q.q)+'</h2>'+
+  q.opts.map((o,j)=>{let c='opt';if(done){if(j===q.ans)c+=' right';else if(j===Q.picked)c+=' wrong'}return '<button class="'+c+'" data-opt="'+j+'"'+(done?' disabled':'')+'><b>'+'ABCD'[j]+'</b><span>'+esc(o)+'</span></button>'}).join('')+
+  (done?'<div class="why"><b>'+(Q.picked===q.ans?'✅ Correct!':'❌ Not quite.')+'</b> '+esc(q.ex)+'</div><button class="btn" data-act="next">'+(Q.i+1>=Q.qs.length?'See my score':'Next question')+'</button>':'')+'</div>';
+}
+
+/* expected questions + answers */
+function renderExpHome(){
+  if(!docLoaded){empty($('expV'),'Upload your notes first. Then I will list the questions most likely to come in your exam, with answers.');return}
+  if(expData){renderExp();return}
+  if($('expV').dataset.busy)return;
+  $('expV').innerHTML='<div class="card center"><h2>⭐ Expected questions &amp; answers</h2><p class="mut">I will study your document and list the questions that are most likely in your exam or viva, each with a simple answer.</p><button class="btn" data-act="mkexp">Show expected questions</button></div>';
+}
+async function makeExp(){
+  const el=$('expV');el.dataset.busy='1';el.innerHTML=loadingHTML('Finding the most important exam questions…');
+  try{
+    const d=await genJSON('You are an exam-setter for an Operating Systems course. From the CONTEXT (the student\'s own document) list the 10 questions most likely to be asked in an exam or viva, covering different topics, most important first. For each give a simple, genuine, easy-to-understand answer (60-120 words) in plain English using short markdown bullets where helpful, with a tiny real-life analogy or memory trick when useful. Return JSON only: {"items":[{"topic":"topic name","marks":5,"q":"question","a":"answer in markdown"}]} where marks is 2, 5 or 10.\n\nCONTEXT:\n'+ctxText(16));
+    const items=(d.items||[]).filter(x=>x&&x.q&&x.a).slice(0,12);
+    if(!items.length)throw {};
+    expData=items;delete el.dataset.busy;renderExp();
+  }catch(e){delete el.dataset.busy;el.innerHTML=failHTML(e,'mkexp')}
+}
+function renderExp(){
+  $('expV').innerHTML='<div class="hh"><h2>⭐ Expected Q&amp;A <small>'+expData.length+' questions</small></h2><button class="ghost" data-act="toggle">Open / close all</button><button class="ghost" style="margin-left:0" data-act="mkexp">Regenerate</button></div>'+
+  expData.map((x,i)=>'<details class="qa"><summary><span class="no">'+(i+1)+'</span><span class="qt">'+esc(x.q)+'<small>'+esc(x.topic||'')+(x.marks?' · '+esc(String(x.marks))+' marks':'')+'</small></span></summary><div class="ans">'+md(x.a)+'</div></details>').join('');
+}
+
+/* clicks */
+document.addEventListener('click',e=>{
+  const t=e.target;
+  const go=t.closest('[data-go]');if(go){show(go.dataset.go);return}
+  const o=t.closest('[data-opt]');if(o&&quizData&&quizData.picked===null){const j=+o.dataset.opt;quizData.picked=j;if(j===quizData.qs[quizData.i].ans)quizData.score++;renderQuiz();return}
+  const ex=t.closest('[data-exp]');if(ex){const c=lastHits[+ex.dataset.exp];if(c){show('ask');ask('Explain this in simple words: '+c.text.slice(0,240))}return}
+  const dl=t.closest('[data-del]');if(dl){hSave(hLoad().filter(x=>x.id!==dl.dataset.del));renderHist();return}
+  const a=t.closest('[data-act]');if(!a)return;
+  const k=a.dataset.act;
+  if(k==='mkquiz'){quizData=null;makeQuiz()}
+  else if(k==='next'){quizData.i++;quizData.picked=null;renderQuiz()}
+  else if(k==='retry'){Object.assign(quizData,{i:0,score:0,picked:null,saved:false});renderQuiz()}
+  else if(k==='mkexp'){expData=null;makeExp()}
+  else if(k==='toggle'){const d=[...document.querySelectorAll('#expV details')];const op=d.some(x=>!x.open);d.forEach(x=>x.open=op)}
+  else if(k==='clr'){if(a.dataset.armed){hSave([]);renderHist()}else{a.dataset.armed='1';a.textContent='Tap again to confirm'}}
+});
+})();
+</script>
+</body>
+</html>
